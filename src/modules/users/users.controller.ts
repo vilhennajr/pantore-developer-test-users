@@ -39,10 +39,16 @@ export class UsersController {
   }
 
   @Post('reset-password')
-  async requestPasswordReset(@Body() { email }: { email: string }) {
-    const token = await this.usersService.generatePasswordResetToken(email);
+  async requestPasswordReset(
+    @Body() { email, password }: { email: string; password: string },
+  ) {
+    const token = await this.usersService.generatePasswordResetToken(
+      email,
+      password,
+    );
     return { token };
   }
+  private;
 
   @Post('reset-password/:token')
   async resetPassword(

@@ -11,6 +11,8 @@ import { plainToInstance } from 'class-transformer';
 import * as jwt from 'jsonwebtoken';
 import { UserEntity, UserRole } from '../domain/user.entity';
 import { UserRepository } from '../domain/users.repository';
+import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 export interface JwtPayload {
   userId: string;
@@ -20,7 +22,17 @@ export interface JwtPayload {
 export class UsersService {
   private readonly JWT_SECRET = 'your-secret-key';
 
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) {
+    bcrypt.setRandomFallback((size: number) => {
+      const buffer = randomBytes(size);
+      return Array.from(buffer);
+    });
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+  }
 
   private async checkUserExistenceByEmail(
     email: string,
@@ -42,6 +54,9 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     await this.checkUserExistenceByEmail(createUserDto.email);
+
+    const hashedPassword = await this.hashPassword(createUserDto.password);
+    createUserDto.password = hashedPassword;
 
     const savedUser = await this.userRepository.createUser(createUserDto);
 
@@ -67,6 +82,10 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserEntity> {
     await this.checkUserExistenceById(id);
 
+    if (updateUserDto.password) {
+      updateUserDto.password = await this.hashPassword(updateUserDto.password);
+    }
+
     await this.userRepository.updateUser(id, updateUserDto);
     return this.findOne(id);
   }
@@ -81,7 +100,10 @@ export class UsersService {
     return plainToInstance(UserEntity, users);
   }
 
-  async generatePasswordResetToken(email: string): Promise<string> {
+  async generatePasswordResetToken(
+    email: string,
+    password: string,
+  ): Promise<string> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new NotFoundException(
@@ -89,8 +111,14 @@ export class UsersService {
       );
     }
 
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Senha incorreta.');
+    }
+
     const payload = { userId: user.id };
     const token = jwt.sign(payload, this.JWT_SECRET, { expiresIn: '1h' });
+
     return token;
   }
 
