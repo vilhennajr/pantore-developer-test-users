@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './application/users.service';
 import { CreateUserDto } from './application/dto/create-user.dto';
@@ -56,5 +57,10 @@ export class UsersController {
     @Body() { newPassword }: { newPassword: string },
   ) {
     return this.usersService.resetPassword(token, newPassword);
+  }
+
+  @Delete(':id')
+  async softDelete(@Param('id') id: string): Promise<void> {
+    await this.usersService.softDelete(id);
   }
 }

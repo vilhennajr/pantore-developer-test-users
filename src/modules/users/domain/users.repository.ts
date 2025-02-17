@@ -85,4 +85,8 @@ export class UserRepository {
     const users = await this.repository.find({ where: filterConditions });
     return users;
   }
+
+  async softDelete(id: string): Promise<void> {
+    await this.repository.update(id, { deleted_at: new Date() });
+  }
 }

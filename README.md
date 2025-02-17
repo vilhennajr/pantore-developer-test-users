@@ -78,3 +78,9 @@ curl --request POST \
 	"newPassword": "novaSenha123"
 }'
 ```
+
+### Deletar um usuário
+```bash
+curl --request DELETE \
+  --url http://localhost:3000/users/2f3f0874-d6b1-44f9-b1d8-38dbdb4c03d4
+```

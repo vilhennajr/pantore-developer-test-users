@@ -146,4 +146,9 @@ export class UsersService {
       );
     }
   }
+
+  async softDelete(id: string): Promise<void> {
+    await this.checkUserExistenceById(id);
+    await this.userRepository.softDelete(id);
+  }
 }
