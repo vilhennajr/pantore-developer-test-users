@@ -50,7 +50,6 @@ curl --request GET \
   --header 'User-Agent: insomnia/10.3.1'
 ```
 
-
 ### Filtrar usuário por parâmetros
 ```bash
 curl --request GET \
@@ -65,10 +64,10 @@ curl --request POST \
   --url http://localhost:3000/users/reset-password \
   --header 'Content-Type: application/json' \
   --data '{
-	"email": "flavianovilhenna@gmail.com"
+	"email": "flavianovilhenna@gmail.com",
+	"password": "newLife@23"
 }'
 ```
-
 
 ### Alterar Senha
 ```bash
