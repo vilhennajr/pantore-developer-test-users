@@ -26,6 +26,7 @@ services:
       DB_USER: user
       DB_PASSWORD: password
       DB_NAME: backend_db
+      JWT_SECRET: 61191133-6b0c-4725-b18d-d8f116cbdf4b
     ports:
       - "3000:3000"
     volumes:

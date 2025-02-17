@@ -20,7 +20,8 @@ export interface JwtPayload {
 
 @Injectable()
 export class UsersService {
-  private readonly JWT_SECRET = 'your-secret-key';
+  private readonly JWT_SECRET =
+    process.env.JWT_SECRET || '61191133-6b0c-4725-b18d-d8f116cbdf4b';
 
   constructor(private readonly userRepository: UserRepository) {
     bcrypt.setRandomFallback((size: number) => {
@@ -125,7 +126,6 @@ export class UsersService {
   async resetPassword(token: string, newPassword: string): Promise<UserEntity> {
     try {
       const decoded = jwt.verify(token, this.JWT_SECRET) as JwtPayload;
-
       const userId: string = decoded.userId;
 
       const user = await this.userRepository.findById(userId);
@@ -133,7 +133,11 @@ export class UsersService {
         throw new NotFoundException(`Usuário com ID ${userId} não encontrado.`);
       }
 
-      await this.userRepository.updateUser(userId, { password: newPassword });
+      const hashedPassword = await this.hashPassword(newPassword);
+
+      await this.userRepository.updateUser(userId, {
+        password: hashedPassword,
+      });
 
       return plainToInstance(UserEntity, user);
     } catch {
